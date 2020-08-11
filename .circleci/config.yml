@@ -29,6 +29,7 @@ jobs:
     working_directory: ~/demo-react-native
     docker:
       - image: cimg/node:12.16
+    resource_class: xlarge
     steps:
       - checkout
       - restore_cache:
@@ -171,7 +172,7 @@ workflows:
             - build
       - macos-build-and-test:
           requires:
-            - unit_tests
+            - build
       - macos-hold: 
           type: approval
           requires:
