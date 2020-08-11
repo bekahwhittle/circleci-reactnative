@@ -161,41 +161,6 @@ jobs:
           command: bundle exec fastlane $FASTLANE_LANE
       - store_artifacts:
           path: output
-            
-  android-build-and-test:
-    working_directory: ~/demo-react-native/android
-    docker:
-      - image: circleci/android:api-29-node
-    resource_class: large
-    steps:
-      - checkout:
-          path: ~/demo-react-native
-
-      - attach_workspace:
-          at: ~/demo-react-native
-
-      - restore_cache:
-          key: bundle-v1-{{ checksum "Gemfile.lock" }}-{{ arch }}
-
-      - run: bundle install
-
-      - save_cache:
-          key: bundle-v1-{{ checksum "Gemfile.lock" }}-{{ arch }}
-          paths:
-            - vendor/bundle
-
-      - run:
-          name: fastlane tests
-          command: |
-            mkdir -p test-results/fastlane
-            bundle exec fastlane test
-            mv fastlane/report.xml test-results/fastlane
-
-      - store_test_results:
-          path: test-results
-
-      - store_artifacts:
-          path: test-results
 
 workflows:
   build-test-adhoc:
@@ -204,16 +169,17 @@ workflows:
       - unit_tests:
           requires:
             - build
-      - android-build-and-test:
-          requires:
-            - unit_tests
       - macos-build-and-test:
           requires:
             - unit_tests
+      - macos-hold: 
+          type: approval
+          requires:
+            - macos-build-and-test
       - macos-adhoc:
           filters:
             branches:
-              only: development
+              only: main
           requires:
-            - macos-build-and-test
+            - macos-hold
             
