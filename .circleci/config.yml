@@ -177,7 +177,7 @@ workflows:
           type: approval
           requires:
             - macos-build-and-test
-        filters:
+          filters:
             branches:
               only: main
       - macos-adhoc:
