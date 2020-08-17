@@ -65,7 +65,7 @@ jobs:
           path: ~/junit            
 
   android-build-and-test:
-    working_directory: ~/demo-react-native
+    working_directory: ~/demo-react-native/android
     docker:
       - image: circleci/android:api-29-node
     resource_class: large
