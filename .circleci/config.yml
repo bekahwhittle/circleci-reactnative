@@ -68,6 +68,7 @@ jobs:
     working_directory: ~/demo-react-native
     macos:
       xcode: 11.3.0
+    resource_class: large
     environment:
       FL_OUTPUT_DIR: output
       FASTLANE_LANE: test
@@ -156,7 +157,6 @@ jobs:
       - run: 
           command: pod install
           working_directory: ios
-
       # - run:
       #     name: Fastlane
       #     command: bundle exec fastlane $FASTLANE_LANE
