@@ -65,7 +65,7 @@ jobs:
           path: ~/junit            
 
   android-build-and-test:
-    working_directory: ~/demo-react-native/android
+    working_directory: ~/demo-react-native
     docker:
       - image: circleci/android:api-29-node
     resource_class: large
@@ -89,7 +89,6 @@ jobs:
       - run:
           name: fastlane tests
           command: |
-            # mkdir -p test-results/fastlane
             bundle update fastlane
             bundle exec fastlane test
             mv fastlane/report.xml test-results/fastlane
@@ -210,7 +209,6 @@ workflows:
             - build
       - android-build-and-test: 
           requires: 
-            - build
             - unit_tests
       - macos-hold: 
           type: approval
