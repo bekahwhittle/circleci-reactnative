@@ -219,7 +219,10 @@ workflows:
   ### PRODUCTION WORKFLOW MACOS & ANDROID ###
   production-build-test-adhoc:
     jobs:
-      - build
+      - build:
+          filters:
+            branches:
+              only: main
       - unit_tests:
           requires:
             - build
