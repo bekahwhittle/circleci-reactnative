@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/demo-react-native
     docker:
-      - image: cimg/node:12.16
+      - image: circleci/node:latest
     steps:
       - checkout
       - restore_cache:
@@ -72,7 +72,7 @@ jobs:
     steps:
       - checkout:
           path: ~/demo-react-native
-      
+
       - run:
           name: more dependencies 
           command: |
@@ -197,26 +197,48 @@ jobs:
       - run: 
           command: pod install
           working_directory: ios
-      # - run:
-      #     name: Fastlane
-      #     command: bundle exec fastlane $FASTLANE_LANE
-      # - store_artifacts:
-      #     path: output
 
 workflows:
-  build-test-adhoc:
+  ### ANDROID WORKFLOW ###
+  android-build-test: 
     jobs:
       - build
       - unit_tests:
           requires:
             - build
-      - macos-build-and-test:
-          requires:
-            - build
+          filters:
+            branches:
+              ignore: main
       - android-build-and-test: 
           requires: 
             - build
             - unit_tests
+          filters:
+            branches:
+              ignore: main
+  ### PRODUCTION WORKFLOW MACOS & ANDROID ###
+  production-build-test-adhoc:
+    jobs:
+      - build
+      - unit_tests:
+          requires:
+            - build
+          filters:
+            branches:
+              only: main
+      - macos-build-and-test:
+          requires:
+            - build
+          filters:
+            branches:
+              only: main
+      - android-build-and-test: 
+          requires: 
+            - build
+            - unit_tests
+          filters:
+            branches:
+              only: main
       - macos-hold: 
           type: approval
           requires:
@@ -225,9 +247,9 @@ workflows:
             branches:
               only: main
       - macos-adhoc:
+          requires:
+            - macos-hold
           filters:
             branches:
               only: main
-          requires:
-            - macos-hold
             
