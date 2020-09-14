@@ -211,7 +211,6 @@ workflows:
               ignore: main
       - android-build-and-test: 
           requires: 
-            - build
             - unit_tests
           filters:
             branches:
