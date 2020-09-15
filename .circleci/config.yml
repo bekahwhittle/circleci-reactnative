@@ -28,7 +28,7 @@ jobs:
     parallelism: 3
     working_directory: ~/demo-react-native
     docker:
-      - image: circleci/node:latest
+      - image: cimg/node:14.10
     resource_class: xlarge
     steps:
       - checkout
