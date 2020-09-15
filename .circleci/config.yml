@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/demo-react-native
     docker:
-      - image: circleci/node:latest
+      - image: cimg/node:14.10
     steps:
       - checkout
       - restore_cache:
