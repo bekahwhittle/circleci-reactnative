@@ -1,4 +1,13 @@
 version: 2.1
+
+executors:
+  linux:
+    docker:
+      - image: cimg/base:2020.01
+  macos:
+    macos:
+      xcode: 11.4
+
 jobs:
   build:
     working_directory: ~/demo-react-native
@@ -23,7 +32,20 @@ jobs:
           key: node-v1-{{ checksum "package.json" }}-{{ arch }}
           paths:
             - node_modules
-            
+
+  test:
+    parameters:
+      os:
+        type: executor
+      p:
+        type: integer
+        default: 1
+    parallelism: << parameters.p >>
+    executor: << parameters.os >>
+    steps:
+      - checkout
+
+
   unit_tests:
     parallelism: 3
     working_directory: ~/demo-react-native
@@ -203,18 +225,23 @@ workflows:
   android-build-test: 
     jobs:
       - build
-      - unit_tests:
-          requires:
-            - build
-          filters:
-            branches:
-              ignore: main
-      - android-build-and-test: 
-          requires: 
-            - unit_tests
-          filters:
-            branches:
-              ignore: main
+      - test:
+          matrix:
+            parameters:
+              p: [3, 6, 9]
+              os: [linux, macos]
+      # - unit_tests:
+      #     requires:
+      #       - build
+      #     filters:
+      #       branches:
+      #         ignore: main
+      # - android-build-and-test: 
+      #     requires: 
+      #       - unit_tests
+      #     filters:
+      #       branches:
+      #         ignore: main
   ### PRODUCTION WORKFLOW MACOS & ANDROID ###
   production-build-test-adhoc:
     jobs:
