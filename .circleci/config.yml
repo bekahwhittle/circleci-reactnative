@@ -4,9 +4,9 @@ executors:
   linux:
     docker:
       - image: cimg/base:2020.01
-  macos:
-    macos:
-      xcode: 11.4
+  node:
+    docker:
+      - image: cimg/node:14.10
 
 jobs:
   build:
@@ -33,7 +33,7 @@ jobs:
           paths:
             - node_modules
 
-  test:
+  matrix-test-parallelism:
     parameters:
       os:
         type: executor
@@ -225,11 +225,13 @@ workflows:
   android-build-test: 
     jobs:
       - build
-      - test:
+      - matrix-test-parallelism:
+          requires:
+            - build
           matrix:
             parameters:
               p: [3, 6, 9]
-              os: [linux, macos]
+              os: [linux, node]
       # - unit_tests:
       #     requires:
       #       - build
