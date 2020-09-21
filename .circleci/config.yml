@@ -45,7 +45,6 @@ jobs:
     steps:
       - checkout
 
-
   unit_tests:
     parallelism: 3
     working_directory: ~/demo-react-native
@@ -232,18 +231,18 @@ workflows:
             parameters:
               p: [3, 6, 9]
               os: [linux, node]
-      # - unit_tests:
-      #     requires:
-      #       - build
-      #     filters:
-      #       branches:
-      #         ignore: main
-      # - android-build-and-test: 
-      #     requires: 
-      #       - unit_tests
-      #     filters:
-      #       branches:
-      #         ignore: main
+      - unit_tests:
+          requires:
+            - matrix-test-parallelism
+          filters:
+            branches:
+              ignore: main
+      - android-build-and-test: 
+          requires: 
+            - unit_tests
+          filters:
+            branches:
+              ignore: main
   ### PRODUCTION WORKFLOW MACOS & ANDROID ###
   production-build-test-adhoc:
     jobs:
