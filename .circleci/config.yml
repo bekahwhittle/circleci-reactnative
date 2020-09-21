@@ -1,9 +1,18 @@
 version: 2.1
+
+executors:
+  linux:
+    docker:
+      - image: cimg/base:2020.01
+  node:
+    docker:
+      - image: cimg/node:14.10
+
 jobs:
   build:
     working_directory: ~/demo-react-native
     docker:
-      - image: cimg/node:12.16
+      - image: cimg/node:14.10
     steps:
       - checkout
       - restore_cache:
@@ -23,12 +32,24 @@ jobs:
           key: node-v1-{{ checksum "package.json" }}-{{ arch }}
           paths:
             - node_modules
-            
+
+  matrix-test-parallelism:
+    parameters:
+      os:
+        type: executor
+      p:
+        type: integer
+        default: 1
+    parallelism: << parameters.p >>
+    executor: << parameters.os >>
+    steps:
+      - checkout
+
   unit_tests:
     parallelism: 3
     working_directory: ~/demo-react-native
     docker:
-      - image: cimg/node:12.16
+      - image: cimg/node:14.10
     resource_class: xlarge
     steps:
       - checkout
@@ -72,7 +93,7 @@ jobs:
     steps:
       - checkout:
           path: ~/demo-react-native
-      
+
       - run:
           name: more dependencies 
           command: |
@@ -197,26 +218,66 @@ jobs:
       - run: 
           command: pod install
           working_directory: ios
-      # - run:
-      #     name: Fastlane
-      #     command: bundle exec fastlane $FASTLANE_LANE
-      # - store_artifacts:
-      #     path: output
 
 workflows:
-  build-test-adhoc:
+  ### ANDROID WORKFLOW ###
+  android-build-test: 
     jobs:
       - build
-      - unit_tests:
+      - matrix-test-parallelism:
           requires:
             - build
+          matrix:
+            parameters:
+              p: [3, 6, 9]
+              os: [linux, node]
+      - unit_tests:
+          requires:
+            - matrix-test-parallelism
+          filters:
+            branches:
+              ignore: main
+      - android-build-and-test: 
+          requires: 
+            - unit_tests
+          filters:
+            branches:
+              ignore: main
+  ### PRODUCTION WORKFLOW MACOS & ANDROID ###
+  production-build-test-adhoc:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only: main
+      - matrix-test-parallelism:
+          requires:
+            - build
+          matrix:
+            parameters:
+              p: [3, 6, 9]
+              os: [linux, node]
+            filters:
+              branches:
+                only: main
+      - unit_tests:
+          requires:
+            - matrix-test-parallelism
+          filters:
+            branches:
+              only: main
       - macos-build-and-test:
           requires:
             - build
+          filters:
+            branches:
+              only: main
       - android-build-and-test: 
           requires: 
-            - build
             - unit_tests
+          filters:
+            branches:
+              only: main
       - macos-hold: 
           type: approval
           requires:
@@ -225,9 +286,9 @@ workflows:
             branches:
               only: main
       - macos-adhoc:
+          requires:
+            - macos-hold
           filters:
             branches:
               only: main
-          requires:
-            - macos-hold
             
