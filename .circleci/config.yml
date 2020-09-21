@@ -250,9 +250,19 @@ workflows:
           filters:
             branches:
               only: main
-      - unit_tests:
+      - matrix-test-parallelism:
           requires:
             - build
+          matrix:
+            parameters:
+              p: [3, 6, 9]
+              os: [linux, node]
+            filters:
+              branches:
+                only: main
+      - unit_tests:
+          requires:
+            - matrix-test-parallelism
           filters:
             branches:
               only: main
@@ -264,7 +274,6 @@ workflows:
               only: main
       - android-build-and-test: 
           requires: 
-            - build
             - unit_tests
           filters:
             branches:
