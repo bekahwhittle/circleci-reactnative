@@ -1,10 +1,10 @@
 version: 2.1
 
 executors:
-  node-12:
+  linux:
     docker:
-      - image: cimg/node:12.16
-  node-14:
+      - image: cimg/base:2020.01
+  node:
     docker:
       - image: cimg/node:14.10
 
@@ -33,16 +33,7 @@ jobs:
           paths:
             - node_modules
 
-  # matrix-test-parallelism:
-
-  #   steps:
-  #     - checkout
-
-  unit_tests:
-    working_directory: ~/demo-react-native
-    # docker:
-    #   - image: cimg/node:14.10
-    resource_class: xlarge
+  matrix-test-parallelism:
     parameters:
       os:
         type: executor
@@ -51,6 +42,15 @@ jobs:
         default: 1
     parallelism: << parameters.p >>
     executor: << parameters.os >>
+    steps:
+      - checkout
+
+  unit_tests:
+    parallelism: 3
+    working_directory: ~/demo-react-native
+    docker:
+      - image: cimg/node:14.10
+    resource_class: xlarge
     steps:
       - checkout
       - restore_cache:
@@ -224,20 +224,16 @@ workflows:
   android-build-test: 
     jobs:
       - build
-      # - matrix-test-parallelism:
-      #     requires:
-      #       - build
-      #     matrix:
-      #       parameters:
-      #         p: [3, 6, 9]
-      #         os: [linux, node]
-      - unit_tests:
+      - matrix-test-parallelism:
           requires:
             - build
           matrix:
             parameters:
               p: [3, 6, 9]
-              os: [node-12, node-14]
+              os: [linux, node]
+      - unit_tests:
+          requires:
+            - matrix-test-parallelism
           filters:
             branches:
               ignore: main
@@ -254,22 +250,22 @@ workflows:
           filters:
             branches:
               only: main
-      # - matrix-test-parallelism:
-      #     requires:
-      #       - build
-      #     matrix:
-      #       parameters:
-      #         p: [3, 6, 9]
-      #         os: [linux, node]
-      #       filters:
-      #         branches:
-      #           only: main
-      # - unit_tests:
-      #     requires:
-      #       - matrix-test-parallelism
-      #     filters:
-      #       branches:
-      #         only: main
+      - matrix-test-parallelism:
+          requires:
+            - build
+          matrix:
+            parameters:
+              p: [3, 6, 9]
+              os: [linux, node]
+            filters:
+              branches:
+                only: main
+      - unit_tests:
+          requires:
+            - matrix-test-parallelism
+          filters:
+            branches:
+              only: main
       - macos-build-and-test:
           requires:
             - build
@@ -277,8 +273,8 @@ workflows:
             branches:
               only: main
       - android-build-and-test: 
-          # requires: 
-          #   - unit_tests
+          requires: 
+            - unit_tests
           filters:
             branches:
               only: main
