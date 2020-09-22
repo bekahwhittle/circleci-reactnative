@@ -48,6 +48,8 @@ jobs:
     executor: << parameters.os >>
     steps:
       - checkout
+      # - echo "I am using << parameters.p >> parallelism"
+      # - echo "My executor is << parameters.os >>"
 
   unit_tests:
     parallelism: 3
@@ -244,6 +246,23 @@ workflows:
       - android-fastlane: 
           requires: 
             - matrix-parallelism
+### MACOS WORKFLOW ###
+  macos-build-test:
+    jobs:
+      - build:
+          filters:
+            branches:
+              ignore: main
+      - macos-build-and-test:
+          requires:
+            - build
+      - macos-hold: 
+          type: approval
+          requires:
+            - macos-build-and-test
+      - macos-adhoc:
+          requires:
+            - macos-hold            
   ### PRODUCTION WORKFLOW MACOS & ANDROID ###
   production-build-test-adhoc:
     jobs:
@@ -253,20 +272,20 @@ workflows:
               only: main
       - matrix-parallelism:
           requires:
-            - build
+            - unit_tests
           matrix:
             parameters:
               p: [3, 6, 9]
               os: [linux, node]
       - unit_tests:
           requires:
-            - matrix-parallelism
+            - build
       - macos-build-and-test:
           requires:
             - build
       - android-fastlane: 
           requires: 
-            - unit_tests
+            - matrix-parallelism
       - macos-hold: 
           type: approval
           requires:
