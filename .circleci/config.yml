@@ -1,5 +1,6 @@
 version: 2.1
 
+### EXECUTORS ###
 executors:
   linux:
     docker:
@@ -11,7 +12,7 @@ executors:
     macos:
       xcode: 11.3.0
 
-
+#### JOBS ####
 jobs:
   build:
     working_directory: ~/demo-react-native
@@ -21,17 +22,13 @@ jobs:
       - checkout
       - restore_cache:
           key: yarn-v1-{{ checksum "yarn.lock" }}-{{ arch }}
-
       - restore_cache:
           key: node-v1-{{ checksum "package.json" }}-{{ arch }}
-
       - run: yarn install
-
       - save_cache:
           key: yarn-v1-{{ checksum "yarn.lock" }}-{{ arch }}
           paths:
             - ~/.cache/yarn
-
       - save_cache:
           key: node-v1-{{ checksum "package.json" }}-{{ arch }}
           paths:
@@ -48,8 +45,6 @@ jobs:
     executor: << parameters.os >>
     steps:
       - checkout
-      # - echo "I am using << parameters.p >> parallelism"
-      # - echo "My executor is << parameters.os >>"
 
   unit_tests:
     parallelism: 3
@@ -61,22 +56,17 @@ jobs:
       - checkout
       - restore_cache:
           key: yarn-v1-{{ checksum "yarn.lock" }}-{{ arch }}
-
       - restore_cache:
           key: node-v1-{{ checksum "package.json" }}-{{ arch }}
-
       - run: yarn install
-
       - save_cache:
           key: yarn-v1-{{ checksum "yarn.lock" }}-{{ arch }}
           paths:
             - ~/.cache/yarn
-
       - save_cache:
           key: node-v1-{{ checksum "package.json" }}-{{ arch }}
           paths:
             - node_modules
-            
       - run: mkdir ~/junit
       - run:
           name: Test application
@@ -99,36 +89,28 @@ jobs:
     steps:
       - checkout:
           path: ~/demo-react-native
-
       - run:
           name: more dependencies 
           command: |
             yarn add @react-native-community/cli-platform-android@3.0.3
             yarn add react-native@0.61.5
-
       - attach_workspace:
           at: ~/demo-react-native
-
       - restore_cache:
           key: bundle-v1-{{ checksum "Gemfile.lock" }}-{{ arch }}
-
       - run: bundle update
-
       - save_cache:
           key: bundle-v1-{{ checksum "Gemfile.lock" }}-{{ arch }}
           paths:
             - vendor/bundle
-
       - run:
           name: fastlane tests
           command: |
             mkdir -p test-results/fastlane
             bundle exec fastlane test
             mv fastlane/report.xml test-results/fastlane
-
       - store_test_results:
           path: test-results
-
       - store_artifacts:
           path: test-results
 
@@ -148,11 +130,9 @@ jobs:
             npm install -g react-native-cli
       - restore_cache:
           key: yarn-v1-{{ checksum "yarn.lock" }}-{{ arch }}
-
       - restore_cache:
           key: node-v1-{{ checksum "package.json" }}-{{ arch }}
       - run: yarn install
-
       - save_cache:
           key: yarn-v1-{{ checksum "yarn.lock" }}-{{ arch }}
           paths:
@@ -161,7 +141,6 @@ jobs:
           key: node-v1-{{ checksum "package.json" }}-{{ arch }}
           paths:
             - node_modules
-
       - restore_cache:
           key: bundle-v1-{{ checksum "ios/Gemfile.lock" }}-{{ arch }}
       - run: 
@@ -178,7 +157,6 @@ jobs:
           name: Fastlane
           command: bundle exec fastlane $FASTLANE_LANE
           working_directory: ios
-
       - store_artifacts:
           path: output
       - store_test_results:
@@ -195,12 +173,9 @@ jobs:
       - checkout
       - restore_cache:
           key: yarn-v1-{{ checksum "yarn.lock" }}-{{ arch }}
-
       - restore_cache:
           key: node-v1-{{ checksum "package.json" }}-{{ arch }}
-
       - run: yarn install
-
       - save_cache:
           key: yarn-v1-{{ checksum "yarn.lock" }}-{{ arch }}
           paths:
@@ -209,14 +184,11 @@ jobs:
           key: node-v1-{{ checksum "package.json" }}-{{ arch }}
           paths:
             - node_modules
-
       - restore_cache:
           key: bundle-v1-{{ checksum "ios/Gemfile.lock" }}-{{ arch }}
-    
       - run: 
           command: bundle install
           working_directory: ios
-
       - save_cache:
           key: bundle-v1-{{ checksum "ios/Gemfile.lock" }}-{{ arch }}
           paths:
@@ -225,6 +197,7 @@ jobs:
           command: pod install
           working_directory: ios
 
+### WORKFLOWS ###
 workflows:
   ### ANDROID WORKFLOW ###
   android-build-test: 
