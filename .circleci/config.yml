@@ -34,7 +34,6 @@ jobs:
           paths:
             - node_modules
 
-  ### MATRIX ###
   matrix-parallelism:
     parameters:
       os:
